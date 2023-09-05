@@ -1,14 +1,11 @@
 use std::{env, fs, io, process};
 use std::io::Write;
 
-// TODO: should this go in a new Lox struct? This would imply moving some functions into Lox scope
-// and converting them to methods.
-static mut HAD_ERROR: bool = false;
-
 fn main() {
+    let mut lox = Lox { had_error: false };
     match env::args().len() {
-        1 => run_prompt(),
-        2 => run_file(env::args().nth(1).unwrap()),
+        1 => lox.run_prompt(),
+        2 => lox.run_file(env::args().nth(1).unwrap()),
         _ => {
             eprintln!("Usage: {} [script]", env::args().nth(0).unwrap());
             process::exit(64);
@@ -30,62 +27,62 @@ impl Scanner {
     }
 }
 
-fn run_prompt() {
-    loop {
-        print!("> ");
-        io::stdout().flush().unwrap();
-        let mut command = String::new();
-        match io::stdin().read_line(&mut command) {
-            Ok(0) => {
-                // erase "> " with backspaces
-                print!("\u{8}\u{8}");
-                io::stdout().flush().unwrap();
-                println!("(CTRL+D) QUIT");
-                break;
-            }
-            Ok(_) => {
-                run(command);
-                unsafe {
-                    HAD_ERROR = false;
-                }
-            }
-            Err(e) => eprintln!("{}", e),
-        };
-    }
+struct Lox {
+    had_error: bool,
 }
 
-fn run_file(path: String) {
-    match fs::read_to_string(path) {
-        Ok(program) => {
-            run(program);
-            unsafe {
-                if HAD_ERROR {
+impl Lox {
+    fn run_prompt(&mut self) {
+        loop {
+            print!("> ");
+            io::stdout().flush().unwrap();
+            let mut command = String::new();
+            match io::stdin().read_line(&mut command) {
+                Ok(0) => {
+                    // erase "> " with backspaces
+                    print!("\u{8}\u{8}");
+                    io::stdout().flush().unwrap();
+                    println!("(CTRL+D) QUIT");
+                    break;
+                }
+                Ok(_) => {
+                    self.run(command);
+                    self.had_error = false;
+                }
+                Err(e) => eprintln!("{}", e),
+            };
+        }
+    }
+
+    fn run_file(&self, path: String) {
+        match fs::read_to_string(path) {
+            Ok(program) => {
+                self.run(program);
+                if self.had_error {
                     process::exit(65);
                 }
             }
-        }
-        Err(e) => {
-            eprintln!("{}", e);
-        }
-    };
-}
-
-fn run(source: String) {
-    let scanner = Scanner { source };
-    let tokens = scanner.scan_tokens();
-
-    for token in tokens {
-        println!("{:?}", token);
+            Err(e) => {
+                eprintln!("{}", e);
+            }
+        };
     }
-}
 
-fn error(line: usize, message: String) {
-    report(line, String::from(""), message);
-}
+    fn run(&self, source: String) {
+        let scanner = Scanner { source };
+        let tokens = scanner.scan_tokens();
 
-fn report(line: usize, location: String, message: String) {
-    eprintln!("[line {line}] Error{location}: {message}");
-    unsafe {
-        HAD_ERROR = true;
+        for token in tokens {
+            println!("{:?}", token);
+        }
+    }
+
+    fn error(&mut self, line: usize, message: String) {
+        self.report(line, String::from(""), message);
+    }
+
+    fn report(&mut self, line: usize, location: String, message: String) {
+        eprintln!("[line {line}] Error{location}: {message}");
+        self.had_error = true;
     }
 }
