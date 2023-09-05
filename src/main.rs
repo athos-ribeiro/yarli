@@ -1,6 +1,10 @@
 use std::{env, fs, io, process};
 use std::io::Write;
 
+// TODO: should this go in a new Lox struct? This would imply moving some functions into Lox scope
+// and converting them to methods.
+static mut HAD_ERROR: bool = false;
+
 fn main() {
     match env::args().len() {
         1 => run_prompt(),
@@ -10,6 +14,20 @@ fn main() {
             process::exit(64);
         },
     };
+}
+
+#[derive(Debug)]
+struct Token;
+
+struct Scanner {
+    source: String,
+}
+
+impl Scanner {
+    fn scan_tokens(&self) -> Vec<Token> {
+        let _ = &self.source;
+        Vec::new()
+    }
 }
 
 fn run_prompt() {
@@ -25,8 +43,13 @@ fn run_prompt() {
                 println!("(CTRL+D) QUIT");
                 break;
             }
-            Ok(_) => run(command),
-            Err(e) => println!("{}", e),
+            Ok(_) => {
+                run(command);
+                unsafe {
+                    HAD_ERROR = false;
+                }
+            }
+            Err(e) => eprintln!("{}", e),
         };
     }
 }
@@ -35,6 +58,11 @@ fn run_file(path: String) {
     match fs::read_to_string(path) {
         Ok(program) => {
             run(program);
+            unsafe {
+                if HAD_ERROR {
+                    process::exit(65);
+                }
+            }
         }
         Err(e) => {
             eprintln!("{}", e);
@@ -51,16 +79,13 @@ fn run(source: String) {
     }
 }
 
-struct Scanner {
-    source: String,
+fn error(line: usize, message: String) {
+    report(line, String::from(""), message);
 }
 
-impl Scanner {
-    fn scan_tokens(&self) -> Vec<Token> {
-        let _ = &self.source;
-        Vec::new()
+fn report(line: usize, location: String, message: String) {
+    eprintln!("[line {line}] Error{location}: {message}");
+    unsafe {
+        HAD_ERROR = true;
     }
 }
-
-#[derive(Debug)]
-struct Token;
