@@ -1,4 +1,4 @@
-use std::{env, fs, io, process};
+use std::{env, fmt, fs, io, process};
 use std::io::Write;
 
 fn main() {
@@ -13,8 +13,18 @@ fn main() {
     };
 }
 
-#[derive(Debug)]
-struct Token;
+struct Token {
+    token_type: TokenType,
+    lexeme: String,
+    literal: Box<dyn fmt::Display>,
+    line: usize,
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {} {}", self.token_type, self.lexeme, self.literal)
+    }
+}
 
 struct Scanner {
     source: String,
@@ -29,6 +39,28 @@ impl Scanner {
 
 struct Lox {
     had_error: bool,
+}
+
+#[derive(Debug)]
+#[allow(non_camel_case_types)]
+enum TokenType {
+    // single character tokens
+    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
+    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    // one or two character tokens
+    BANG, BANG_EQUAL, EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+    // literals
+    IDENTIFIER, STRING, NUMBER,
+    // keywords
+    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+
+    EOF,
+}
+
+impl fmt::Display for TokenType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
 }
 
 impl Lox {
@@ -73,7 +105,7 @@ impl Lox {
         let tokens = scanner.scan_tokens();
 
         for token in tokens {
-            println!("{:?}", token);
+            println!("{}", token);
         }
     }
 
