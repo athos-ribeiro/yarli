@@ -16,24 +16,64 @@ fn main() {
 struct Token {
     token_type: TokenType,
     lexeme: String,
-    literal: Box<dyn fmt::Display>,
+    literal: Option<Box<dyn fmt::Display>>,
     line: usize,
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {} {}", self.token_type, self.lexeme, self.literal)
+        write!(
+            f,
+            "{} {} {}",
+            self.token_type,
+            self.lexeme,
+            self.literal.as_ref()
+            .or(Some(Box::new("null") as Box<dyn fmt::Display>).as_ref())
+            .unwrap(),
+        )
     }
 }
 
 struct Scanner {
     source: String,
+    tokens: Vec<Token>,
+    start: usize,
+    current: usize,
+    line: usize,
 }
 
 impl Scanner {
-    fn scan_tokens(&self) -> Vec<Token> {
-        let _ = &self.source;
-        Vec::new()
+    fn new(source: String) -> Self {
+        Scanner {
+            source,
+            tokens: Vec::new(),
+            start: 0,
+            current: 0,
+            line: 1,
+        }
+    }
+
+    fn scan_tokens(&mut self) -> &Vec<Token> {
+        while !self.is_at_end() {
+            // We are at the beginning of the next lexeme
+            self.start = self.current;
+            self.scan_token();
+        }
+        let t = Token {
+            token_type: TokenType::EOF,
+            lexeme: String::from(""),
+            literal: None,
+            line: 1,
+        };
+        self.tokens.push(t);
+        &self.tokens
+    }
+
+    fn scan_token(&mut self) {
+        self.current += 1;
+    }
+    fn is_at_end(&self) -> bool {
+        self.current >= self.source.len()
     }
 }
 
@@ -101,7 +141,7 @@ impl Lox {
     }
 
     fn run(&self, source: String) {
-        let scanner = Scanner { source };
+        let mut scanner = Scanner::new(source);
         let tokens = scanner.scan_tokens();
 
         for token in tokens {
