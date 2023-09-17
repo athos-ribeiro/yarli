@@ -70,10 +70,36 @@ impl Scanner {
     }
 
     fn scan_token(&mut self) {
-        self.current += 1;
+        match self.advance() {
+            Some('(') => self.add_token(TokenType::LEFT_PAREN, None),
+            Some(')') => self.add_token(TokenType::RIGHT_PAREN, None),
+            Some('{') => self.add_token(TokenType::LEFT_BRACE, None),
+            Some('}') => self.add_token(TokenType::RIGHT_BRACE, None),
+            Some(',') => self.add_token(TokenType::COMMA, None),
+            Some('.') => self.add_token(TokenType::DOT, None),
+            Some('-') => self.add_token(TokenType::MINUS, None),
+            Some('+') => self.add_token(TokenType::PLUS, None),
+            Some(';') => self.add_token(TokenType::SEMICOLON, None),
+            Some('*') => self.add_token(TokenType::STAR, None),
+            Some(_) => (),
+            None => (),
+        };
     }
+
+    fn advance(&mut self) -> Option<char> {
+        self.current += 1;
+        self.source.chars().nth(self.current)
+    }
+
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
+    }
+
+    fn add_token(&mut self, token_type: TokenType, literal: Option<Box<dyn fmt::Display>>) {
+        // TODO: we need to account for utf8 data here. the slice below is quite error prone
+        let text = String::from(&self.source[self.start..self.current]);
+        let line = 0;
+        self.tokens.push(Token {token_type, lexeme: text, literal, line});
     }
 }
 
