@@ -1,5 +1,6 @@
 use std::{fs, io, process};
 use std::io::Write;
+use crate::lexer::Scanner;
 
 mod lexer;
 
@@ -30,7 +31,7 @@ impl Lox {
         }
     }
 
-    pub fn run_file(&self, path: String) {
+    pub fn run_file(&mut self, path: String) {
         match fs::read_to_string(path) {
             Ok(program) => {
                 self.run(program);
@@ -44,8 +45,8 @@ impl Lox {
         };
     }
 
-    fn run(&self, source: String) {
-        let mut scanner = lexer::Scanner::new(source);
+    fn run(&mut self, source: String) {
+        let mut scanner = Scanner::new(source, self);
         let tokens = scanner.scan_tokens();
 
         for token in tokens {

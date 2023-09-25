@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::Lox;
 
 pub struct Token {
     token_type: TokenType,
@@ -21,22 +22,24 @@ impl fmt::Display for Token {
     }
 }
 
-pub struct Scanner {
+pub struct Scanner<'a> {
     source: String,
     tokens: Vec<Token>,
     start: usize,
     current: usize,
     line: usize,
+    runner: &'a mut Lox,
 }
 
-impl Scanner {
-    pub fn new(source: String) -> Self {
+impl<'a> Scanner<'a> {
+    pub fn new(source: String, runner: &'a mut Lox) -> Self {
         Scanner {
             source,
             tokens: Vec::new(),
             start: 0,
             current: 0,
             line: 1,
+            runner,
         }
     }
 
@@ -68,14 +71,17 @@ impl Scanner {
             Some('+') => self.add_token(TokenType::PLUS, None),
             Some(';') => self.add_token(TokenType::SEMICOLON, None),
             Some('*') => self.add_token(TokenType::STAR, None),
-            Some(_) => (),
+            Some(entry) => {
+                self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
+            }
             None => (),
         };
     }
 
     fn advance(&mut self) -> Option<char> {
+        let next = self.source.chars().nth(self.current);
         self.current += 1;
-        self.source.chars().nth(self.current)
+        next
     }
 
     fn is_at_end(&self) -> bool {
