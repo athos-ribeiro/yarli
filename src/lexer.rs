@@ -109,6 +109,8 @@ impl<'a> Scanner<'a> {
                     self.add_token(TokenType::SLASH, None);
                 }
             }
+            Some(' ') | Some ('\r') | Some('\t') => (),
+            Some('\n') => self.line += 1,
             Some(entry) => {
                 self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
