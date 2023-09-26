@@ -71,11 +71,48 @@ impl<'a> Scanner<'a> {
             Some('+') => self.add_token(TokenType::PLUS, None),
             Some(';') => self.add_token(TokenType::SEMICOLON, None),
             Some('*') => self.add_token(TokenType::STAR, None),
+            Some('!') => {
+                if self.match_next('=') {
+                    self.add_token(TokenType::BANG_EQUAL, None);
+                } else {
+                    self.add_token(TokenType::BANG, None);
+                }
+            }
+            Some('=') => {
+                if self.match_next('=') {
+                    self.add_token(TokenType::EQUAL_EQUAL, None);
+                } else {
+                    self.add_token(TokenType::EQUAL, None);
+                }
+            }
+            Some('<') => {
+                if self.match_next('=') {
+                    self.add_token(TokenType::LESS_EQUAL, None);
+                } else {
+                    self.add_token(TokenType::LESS, None);
+                }
+            }
+            Some('>') => {
+                if self.match_next('=') {
+                    self.add_token(TokenType::GREATER_EQUAL, None);
+                } else {
+                    self.add_token(TokenType::GREATER, None);
+                }
+            }
             Some(entry) => {
                 self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
             None => (),
         };
+    }
+
+    fn match_next(&mut self, expected: char) -> bool {
+        if self.is_at_end() { return false; }
+        if self.source.chars().nth(self.current) == Some(expected) {
+            self.current += 1;
+            return true;
+        }
+        false
     }
 
     fn advance(&mut self) -> Option<char> {
