@@ -99,11 +99,28 @@ impl<'a> Scanner<'a> {
                     self.add_token(TokenType::GREATER, None);
                 }
             }
+            Some('/') => {
+                if self.match_next('/') {
+                    // ignore the whole line
+                    while self.peek() != Some('\n') && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::SLASH, None);
+                }
+            }
             Some(entry) => {
                 self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
             None => (),
         };
+    }
+
+    fn peek(&self) -> Option<char> {
+        if self.is_at_end() {
+            return Some('\0');
+        }
+        self.source.chars().nth(self.current)
     }
 
     fn match_next(&mut self, expected: char) -> bool {
