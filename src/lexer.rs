@@ -111,11 +111,33 @@ impl<'a> Scanner<'a> {
             }
             Some(' ') | Some ('\r') | Some('\t') => (),
             Some('\n') => self.line += 1,
+            Some('"') => self.string(),
             Some(entry) => {
                 self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
             None => (),
         };
+    }
+
+    fn string(&mut self) {
+        while self.peek() != Some('"') && !self.is_at_end() {
+            if self.peek() == Some('\n') {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.runner.error(self.line, String::from(format!("Unterminated string.")));
+            return ();
+        }
+
+        // now get the closing '"'
+        self.advance();
+        // trim the surrounding quotes
+        // TODO: we need to account for utf8 data here. the slice below is quite error prone
+        let value = String::from(&self.source[(self.start + 1)..(self.current - 1)]);
+        self.add_token(TokenType::STRING, Some(Box::new(value)));
     }
 
     fn peek(&self) -> Option<char> {
