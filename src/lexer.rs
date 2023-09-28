@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, str::FromStr};
 use crate::Lox;
 
 pub struct Token {
@@ -112,11 +112,31 @@ impl<'a> Scanner<'a> {
             Some(' ') | Some ('\r') | Some('\t') => (),
             Some('\n') => self.line += 1,
             Some('"') => self.string(),
+            Some('0'..='9') => self.number(),
             Some(entry) => {
                 self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
             None => (),
         };
+    }
+
+    fn number(&mut self) {
+        while let Some('0'..='9') = self.peek() {
+            self.advance();
+        }
+        if self.peek() == Some('.') {
+            if let Some('0'..='9') = self.peek_next() {
+                // Condume the first '.'
+                self.advance();
+                // and keep parsing the digits after it.
+                while let Some('0'..='9') = self.peek() {
+                    self.advance();
+                }
+            }
+        }
+        // TODO: we need to account for utf8 data here. the slice below is quite error prone
+        let value: f64 = f64::from_str(&self.source[self.start..self.current]).unwrap();
+        self.add_token(TokenType::NUMBER, Some(Box::new(value)));
     }
 
     fn string(&mut self) {
@@ -145,6 +165,13 @@ impl<'a> Scanner<'a> {
             return Some('\0');
         }
         self.source.chars().nth(self.current)
+    }
+
+    fn peek_next(&self) -> Option<char> {
+        if self.current + 1 >= self.source.len() {
+            return Some('\0');
+        }
+        self.source.chars().nth(self.current + 1)
     }
 
     fn match_next(&mut self, expected: char) -> bool {
