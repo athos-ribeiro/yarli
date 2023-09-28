@@ -113,11 +113,40 @@ impl<'a> Scanner<'a> {
             Some('\n') => self.line += 1,
             Some('"') => self.string(),
             Some('0'..='9') => self.number(),
+            Some('A'..='Z') | Some('a'..='z') | Some('_') => self.identifier(),
             Some(entry) => {
                 self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
             None => (),
         };
+    }
+
+    fn identifier(&mut self) {
+        while let Some('0'..='9') | Some('A'..='Z') | Some('a'..='z') | Some('_') = self.peek() {
+            self.advance();
+        }
+        // TODO: we need to account for utf8 data here. the slice below is quite error prone
+        let text = &self.source[self.start..self.current];
+        let identifier_type = match text {
+            "and" => TokenType::AND,
+            "class" => TokenType::CLASS,
+            "else" => TokenType::ELSE,
+            "false" => TokenType::FALSE,
+            "for" => TokenType::FOR,
+            "fun" => TokenType::FUN,
+            "if" => TokenType::IF,
+            "nil" => TokenType::NIL,
+            "or" => TokenType::OR,
+            "print" => TokenType::PRINT,
+            "return" => TokenType::RETURN,
+            "super" => TokenType::SUPER,
+            "this" => TokenType::THIS,
+            "true" => TokenType::TRUE,
+            "var" => TokenType::VAR,
+            "while" => TokenType::WHILE,
+            _ => TokenType::IDENTIFIER,
+        };
+        self.add_token(identifier_type, None);
     }
 
     fn number(&mut self) {
