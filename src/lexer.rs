@@ -105,6 +105,8 @@ impl<'a> Scanner<'a> {
                     while self.peek() != Some('\n') && !self.is_at_end() {
                         self.advance();
                     }
+                } else if self.match_next('*') {
+                    self.block_comment();
                 } else {
                     self.add_token(TokenType::SLASH, None);
                 }
@@ -119,6 +121,23 @@ impl<'a> Scanner<'a> {
             }
             None => (),
         };
+    }
+
+    fn block_comment(&mut self) {
+        loop {
+            if self.is_at_end() {
+                self.runner.error(self.line, String::from(format!("Unfinished block comment")));
+                break;
+            }
+            if self.peek() == Some('*') && self.peek_next() == Some('/') {
+                self.current += 2;
+                break;
+            }
+            if self.peek() == Some ('\n') {
+                self.line += 1;
+            }
+            self.advance();
+        }
     }
 
     fn identifier(&mut self) {
