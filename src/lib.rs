@@ -3,6 +3,7 @@ use std::io::Write;
 use crate::lexer::Scanner;
 
 mod lexer;
+mod parser;
 
 pub struct Lox {
     pub had_error: bool,
