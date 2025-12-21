@@ -1,105 +1,82 @@
 use std::fmt;
 use crate::lexer::Token;
 
-pub trait Expr {
-    fn accept<T>(&self, visitor: &dyn Visitor<T>) -> T;
+pub enum Expr<'a> {
+    Binary { left: &'a Expr<'a>, operator: Token, right: &'a Expr<'a> },
+    Grouping { expression: &'a Expr<'a> },
+    Literal { value: Option<Box<dyn fmt::Display>> },
+    Unary { operator: Token, right: &'a Expr<'a> }
 }
 
-pub struct Binary {
-    left: Box<dyn Expr>,
-    operator: Token,
-    right: Box<dyn Expr>,
-}
-
-impl Expr for Binary {}
-
-impl Binary {
-    fn new(left: Box<dyn Expr>, operator: Token, right: Box<dyn Expr>) -> Self {
-        Binary {
-            left,
-            operator,
-            right,
-        }
-    }
-
+impl<'a> Expr<'a> {
     fn accept<T>(&self, visitor: &dyn Visitor<T>) -> T {
-        visitor.visit_binary_expr(self)
-    }
-}
-
-pub struct Grouping {
-    expression: Box<dyn Expr>,
-}
-
-impl Expr for Grouping {}
-
-impl Grouping {
-    fn new(expression: Box<dyn Expr>) -> Self {
-        Grouping {
-            expression,
-        }
-    }
-
-    fn accept<T>(&self, visitor: &dyn Visitor<T>) -> T {
-        visitor.visit_grouping_expr(self)
-    }
-}
-
-pub struct Literal {
-    value: Option<Box<dyn fmt::Display>>,
-}
-
-impl Expr for Literal {}
-
-impl Literal {
-    fn new(value: Option<Box<dyn fmt::Display>>) -> Self {
-        Literal {
-            value,
-        }
-    }
-}
-
-pub struct Unary {
-    operator: Token,
-    right: Box<dyn Expr>,
-}
-
-impl Expr for Unary {}
-
-impl Unary {
-    fn new(operator: Token, right: Box<dyn Expr>) -> Self {
-        Unary {
-            operator,
-            right,
+        match self {
+            Self::Binary { .. } => visitor.visit_binary_expr(self),
+            Self::Grouping { .. } => visitor.visit_grouping_expr(self),
+            Self::Literal { .. } => visitor.visit_literal_expr(self),
+            Self::Unary { .. }=> visitor.visit_unary_expr(self)
         }
     }
 }
 
 pub trait Visitor<T> {
-    fn visit_binary_expr(&self, expr: &Binary) -> T;
-    fn visit_grouping_expr(&self, expr: &Grouping) -> T;
-    //fn visit_literal_expr(&self, expr: &Literal) -> T;
-    //fn visit_unary_expr(&self, expr: &Unary) -> T;
+    fn visit_binary_expr(&self, expr: &Expr) -> T;
+    fn visit_grouping_expr(&self, expr: &Expr) -> T;
+    fn visit_literal_expr(&self, expr: &Expr) -> T;
+    fn visit_unary_expr(&self, expr: &Expr) -> T;
 }
 
 pub struct AstPrinter;
 
 impl AstPrinter {
-    fn parenthesize(&self, name: &str, exprs: Vec<Box<dyn Expr>>) -> String {
-        panic!()
+    fn parenthesize(&self, name: &str, exprs: Vec<&Expr>) -> String {
+        let mut my_str = format!("({name}");
+        for expr in exprs {
+            my_str.push_str(" ");
+            my_str.push_str(&expr.accept(self));
+        }
+        my_str.push_str(")");
+        my_str
     }
 
-    fn print(&self, expr: &impl Expr) -> String {
+    pub fn print(&self, expr: &Expr) -> String {
         expr.accept(self)
     }
 }
 
 impl Visitor<String> for AstPrinter {
-    fn visit_binary_expr(&self, expr: &Binary) -> String {
-        panic!()
+    fn visit_binary_expr(&self, expr: &Expr) -> String {
+        if let Expr::Binary { left, operator, right } = expr {
+            self.parenthesize(&operator.lexeme, vec![left, right])
+        } else {
+            panic!()
+        }
     }
 
-    fn visit_grouping_expr(&self, expr: &Grouping) -> String {
-        panic!()
+    fn visit_grouping_expr(&self, expr: &Expr) -> String {
+        if let Expr::Grouping { expression } = expr {
+            self.parenthesize(&String::from("group"), vec![expression])
+        } else {
+            panic!()
+        }
+    }
+
+    fn visit_literal_expr(&self, expr: &Expr) -> String {
+        if let Expr::Literal { value } = expr {
+            if value.is_none() {
+                return String::from("nil")
+            }
+            value.as_ref().unwrap().to_string()
+        } else {
+            panic!()
+        }
+    }
+
+    fn visit_unary_expr(&self, expr: &Expr) -> String {
+        if let Expr::Unary { operator, right } = expr {
+            self.parenthesize(&operator.lexeme, vec![right])
+        } else {
+            panic!()
+        }
     }
 }

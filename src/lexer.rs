@@ -2,10 +2,10 @@ use std::{fmt, str::FromStr};
 use crate::Lox;
 
 pub struct Token {
-    token_type: TokenType,
-    lexeme: String,
-    literal: Option<Box<dyn fmt::Display>>,
-    line: usize,
+    pub token_type: TokenType,
+    pub lexeme: String,
+    pub literal: Option<Box<dyn fmt::Display>>,
+    pub line: usize,
 }
 
 impl fmt::Display for Token {
@@ -251,7 +251,7 @@ impl<'a> Scanner<'a> {
 
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
-enum TokenType {
+pub enum TokenType {
     // single character tokens
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,

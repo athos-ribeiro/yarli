@@ -2,8 +2,8 @@ use std::{fs, io, process};
 use std::io::Write;
 use crate::lexer::Scanner;
 
-mod lexer;
-mod parser;
+pub mod lexer;
+pub mod parser;
 
 pub struct Lox {
     pub had_error: bool,
