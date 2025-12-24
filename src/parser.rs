@@ -38,3 +38,23 @@ impl AstPrinter {
         }
     }
 }
+
+pub struct RpnPrinter;
+
+impl RpnPrinter {
+    pub fn print(&self, expr: &Expr) -> String {
+        match expr {
+            Expr::Binary { left, operator, right } => format!("{} {} {}", self.print(left), self.print(right), &operator.lexeme),
+            Expr::Grouping { expression } => {
+                format!("{}", self.print(expression))
+            }
+            Expr::Literal { value } => {
+                if value.is_none() {
+                    return String::from("nil")
+                }
+                value.as_ref().unwrap().to_string()
+            }
+            Expr::Unary { operator, right } => format!("{} {}", self.print(right), &operator.lexeme)
+        }
+    }
+}
