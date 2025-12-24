@@ -1,0 +1,11 @@
+/* block comment */
+a = 1
+/* some
+
+block
+
+comment
+
+*/
+
+FOO

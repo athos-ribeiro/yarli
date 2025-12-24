@@ -1,0 +1,15 @@
+// this is a comment
+(( )){} // grouping stuff
+!*+-/=<> <= == // operators
+
+"foo"
+"some
+multiline
+string
+"
+
+"
+another
+multiline
+string
+"
