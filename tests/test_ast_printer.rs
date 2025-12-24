@@ -14,5 +14,5 @@ fn ast_printer_test() {
     };
 
     let result = AstPrinter.print(&expression);
-    assert!(&result == expected);
+    assert_eq!(&result, expected);
 }
