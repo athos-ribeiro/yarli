@@ -1,6 +1,9 @@
 use yarli::lexer::{Token, TokenType};
 use yarli::parser::{Expr, AstPrinter};
-fn main() {
+
+#[test]
+fn ast_printer_test() {
+    let expected = "(* (- 123) (group 45.67))";
     let expression = Expr::Binary {
         left: &Expr::Unary {
             operator: Token {token_type: TokenType::MINUS, lexeme: String::from("-"), literal: None, line: 1 },
@@ -10,7 +13,6 @@ fn main() {
         right: &Expr::Grouping { expression: &Expr::Literal {value: Some(Box::new(45.67))} }
     };
 
-    let expected = AstPrinter.print(&expression);
-    assert!(&expected == "(* (- 123) (group 45.67))");
-    println!("{}", expected);
+    let result = AstPrinter.print(&expression);
+    assert!(&result == expected);
 }
