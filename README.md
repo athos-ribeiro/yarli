@@ -12,7 +12,7 @@ progress, Once it is complete, we should have a working Lox implementation as
 discribed in the book.
 
 * [X] Chapter 04: Scanning
-* [ ] Chapter 05: Representing Code
+* [X] Chapter 05: Representing Code
 * [ ] Chapter 06: Parsing Expressions
 * [ ] Chapter 07: Evaluating Expressions
 * [ ] Chapter 08: Statements and State
