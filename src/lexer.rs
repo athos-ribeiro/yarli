@@ -249,7 +249,7 @@ impl<'a> Scanner<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum TokenType {
     // single character tokens
