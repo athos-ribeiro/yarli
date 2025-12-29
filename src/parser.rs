@@ -1,11 +1,11 @@
 use std::fmt;
 use crate::lexer::Token;
 
-pub enum Expr {
-    Binary { left: Box<Expr>, operator: Token, right: Box<Expr> },
-    Grouping { expression: Box<Expr> },
+pub enum Expr<'a> {
+    Binary { left: Box<Expr<'a>>, operator: &'a Token, right: Box<Expr<'a>> },
+    Grouping { expression: Box<Expr<'a>> },
     Literal { value: Option<Box<dyn fmt::Display>> },
-    Unary { operator: Token, right: Box<Expr> }
+    Unary { operator: &'a Token, right: Box<Expr<'a>> }
 }
 
 pub struct AstPrinter;
