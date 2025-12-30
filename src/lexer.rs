@@ -148,26 +148,28 @@ impl<'a> Scanner<'a> {
         }
         // TODO: we need to account for utf8 data here. the slice below is quite error prone
         let text = &self.source[self.start..self.current];
-        let identifier_type = match text {
-            "and" => TokenType::AND,
-            "class" => TokenType::CLASS,
-            "else" => TokenType::ELSE,
-            "false" => TokenType::FALSE,
-            "for" => TokenType::FOR,
-            "fun" => TokenType::FUN,
-            "if" => TokenType::IF,
-            "nil" => TokenType::NIL,
-            "or" => TokenType::OR,
-            "print" => TokenType::PRINT,
-            "return" => TokenType::RETURN,
-            "super" => TokenType::SUPER,
-            "this" => TokenType::THIS,
-            "true" => TokenType::TRUE,
-            "var" => TokenType::VAR,
-            "while" => TokenType::WHILE,
-            _ => TokenType::IDENTIFIER,
+        let true_literal: Literal = Some(Box::new(false));
+        let false_literal: Literal = Some(Box::new(false));
+        let (identifier_type, literal) = match text {
+            "and" => (TokenType::AND, None),
+            "class" => (TokenType::CLASS, None),
+            "else" => (TokenType::ELSE, None),
+            "false" => (TokenType::FALSE, false_literal),
+            "for" => (TokenType::FOR, None),
+            "fun" => (TokenType::FUN, None),
+            "if" => (TokenType::IF, None),
+            "nil" => (TokenType::NIL, None),
+            "or" => (TokenType::OR, None),
+            "print" => (TokenType::PRINT, None),
+            "return" => (TokenType::RETURN, None),
+            "super" => (TokenType::SUPER, None),
+            "this" => (TokenType::THIS, None),
+            "true" => (TokenType::TRUE, true_literal),
+            "var" => (TokenType::VAR, None),
+            "while" => (TokenType::WHILE, None),
+            _ => (TokenType::IDENTIFIER, None),
         };
-        self.add_token(identifier_type, None);
+        self.add_token(identifier_type, literal);
     }
 
     fn number(&mut self) {
