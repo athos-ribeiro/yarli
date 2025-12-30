@@ -3,7 +3,7 @@ use crate::lexer::{Literal, Token};
 pub enum Expr<'a> {
     Binary { left: Box<Expr<'a>>, operator: &'a Token, right: Box<Expr<'a>> },
     Grouping { expression: Box<Expr<'a>> },
-    Literal { value: Literal },
+    Literal { value: &'a Literal },
     Unary { operator: &'a Token, right: Box<Expr<'a>> }
 }
 
