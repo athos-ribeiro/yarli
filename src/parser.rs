@@ -1,10 +1,9 @@
-use std::fmt;
-use crate::lexer::Token;
+use crate::lexer::{Literal, Token};
 
 pub enum Expr<'a> {
     Binary { left: Box<Expr<'a>>, operator: &'a Token, right: Box<Expr<'a>> },
     Grouping { expression: Box<Expr<'a>> },
-    Literal { value: Option<Box<dyn fmt::Display>> },
+    Literal { value: Literal },
     Unary { operator: &'a Token, right: Box<Expr<'a>> }
 }
 

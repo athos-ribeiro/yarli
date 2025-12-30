@@ -1,10 +1,12 @@
 use std::{fmt, str::FromStr};
 use crate::Lox;
 
+pub type Literal = Option<Box<dyn fmt::Display>>;
+
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
-    pub literal: Option<Box<dyn fmt::Display>>,
+    pub literal: Literal,
     pub line: usize,
 }
 
@@ -241,7 +243,7 @@ impl<'a> Scanner<'a> {
         self.current >= self.source.len()
     }
 
-    fn add_token(&mut self, token_type: TokenType, literal: Option<Box<dyn fmt::Display>>) {
+    fn add_token(&mut self, token_type: TokenType, literal: Literal) {
         // TODO: we need to account for utf8 data here. the slice below is quite error prone
         let text = String::from(&self.source[self.start..self.current]);
         let line = 0;
