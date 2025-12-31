@@ -156,13 +156,13 @@ pub struct AstPrinter;
 
 impl AstPrinter {
     fn parenthesize(&self, name: &str, exprs: Vec<&Expr>) -> String {
-        let mut my_str = format!("({name}");
+        let mut ast_str = format!("({name}");
         for expr in exprs {
-            my_str.push_str(" ");
-            my_str.push_str(&self.print(&expr));
+            ast_str.push_str(" ");
+            ast_str.push_str(&self.print(&expr));
         }
-        my_str.push_str(")");
-        my_str
+        ast_str.push_str(")");
+        ast_str
     }
 
     pub fn print(&self, expr: &Expr) -> String {
