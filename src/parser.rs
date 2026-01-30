@@ -1,11 +1,21 @@
 use std::cell::Cell;
 use crate::lexer::{Literal, Token, TokenType};
+use crate::Lox;
 
 pub enum Expr<'a> {
     Binary { left: Box<Expr<'a>>, operator: &'a Token, right: Box<Expr<'a>> },
     Grouping { expression: Box<Expr<'a>> },
     Literal { value: &'a Literal },
     Unary { operator: &'a Token, right: Box<Expr<'a>> }
+}
+
+pub struct Error {}
+
+impl Error {
+    fn error(token: &Token, message: &str) -> Self {
+        Lox::parsing_error(token, String::from(message));
+        Self{}
+    }
 }
 
 pub struct Parser {
@@ -101,7 +111,7 @@ impl Parser {
         }
         if self.match_token(vec!(TokenType::LEFT_PAREN)) {
             let expr: Expr = self.expression();
-            self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
+            let _ = self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
             return Expr::Grouping { expression: Box::new(expr) };
         }
         // TODO: improve error handling. We should never get here, if we do, should we really
@@ -109,8 +119,11 @@ impl Parser {
         panic!()
     }
 
-    fn consume(&self, token_type: TokenType, err_msg: &str) {
-        panic!()
+    fn consume(&self, token_type: TokenType, err_msg: &str) -> Result<&Token, Error> {
+        if self.check(token_type) {
+            return Ok(self.advance());
+        }
+        Err(Error::error(self.peek(), err_msg))
     }
 
     // match is a reserved keyword. Hence, let's call this function match_token

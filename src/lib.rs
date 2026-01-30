@@ -1,13 +1,13 @@
 use std::{fs, io, process};
 use std::io::Write;
-use crate::lexer::Scanner;
+use crate::lexer::{Token, TokenType, Scanner};
 
 pub mod lexer;
 pub mod parser;
 
-pub struct Lox {
-    pub had_error: bool,
-}
+static mut HAD_ERROR: bool = false;
+
+pub struct Lox {}
 
 impl Lox {
     pub fn run_prompt(&mut self) {
@@ -25,7 +25,9 @@ impl Lox {
                 }
                 Ok(_) => {
                     self.run(command);
-                    self.had_error = false;
+                    unsafe {
+                        HAD_ERROR = false;
+                    }
                 }
                 Err(e) => eprintln!("{}", e),
             };
@@ -36,8 +38,10 @@ impl Lox {
         match fs::read_to_string(path) {
             Ok(program) => {
                 self.run(program);
-                if self.had_error {
-                    process::exit(65);
+                unsafe {
+                    if HAD_ERROR {
+                        process::exit(65);
+                    }
                 }
             }
             Err(e) => {
@@ -55,12 +59,22 @@ impl Lox {
         }
     }
 
-    fn error(&mut self, line: usize, message: String) {
-        self.report(line, String::from(""), message);
+    fn error(line: usize, message: String) {
+        Self::report(line, String::from(""), message);
     }
 
-    fn report(&mut self, line: usize, location: String, message: String) {
+    fn report(line: usize, location: String, message: String) {
         eprintln!("[line {line}] Error{location}: {message}");
-        self.had_error = true;
+        unsafe {
+            HAD_ERROR = true;
+        }
+    }
+
+    fn parsing_error(token: &Token, message: String) {
+        if token.token_type == TokenType::EOF {
+            Self::report(token.line, String::from(" at end"), message);
+        } else {
+            Self::report(token.line, format!("at '{}'", token.lexeme), message);
+        }
     }
 }

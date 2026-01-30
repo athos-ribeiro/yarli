@@ -119,7 +119,7 @@ impl<'a> Scanner<'a> {
             Some('0'..='9') => self.number(),
             Some('A'..='Z') | Some('a'..='z') | Some('_') => self.identifier(),
             Some(entry) => {
-                self.runner.error(self.line, String::from(format!("Unexpected character '{entry}'")));
+                Lox::error(self.line, String::from(format!("Unexpected character '{entry}'")));
             }
             None => (),
         };
@@ -128,7 +128,7 @@ impl<'a> Scanner<'a> {
     fn block_comment(&mut self) {
         loop {
             if self.is_at_end() {
-                self.runner.error(self.line, String::from(format!("Unfinished block comment")));
+                Lox::error(self.line, String::from(format!("Unfinished block comment")));
                 break;
             }
             if self.peek() == Some('*') && self.peek_next() == Some('/') {
@@ -200,7 +200,7 @@ impl<'a> Scanner<'a> {
         }
 
         if self.is_at_end() {
-            self.runner.error(self.line, String::from(format!("Unterminated string.")));
+            Lox::error(self.line, String::from(format!("Unterminated string.")));
             return ();
         }
 

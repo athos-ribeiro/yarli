@@ -2,7 +2,7 @@ use std::{env, process};
 use yarli::Lox;
 
 fn main() {
-    let mut lox = Lox { had_error: false };
+    let mut lox = Lox {};
     match env::args().len() {
         1 => lox.run_prompt(),
         2 => lox.run_file(env::args().nth(1).unwrap()),
