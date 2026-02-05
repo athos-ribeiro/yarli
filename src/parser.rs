@@ -163,6 +163,20 @@ impl Parser {
     fn previous(&self) -> &Token {
         &self.tokens[self.current.get() - 1]
     }
+
+    fn synchronize(&self) {
+        self.advance();
+
+        while !self.is_at_end() {
+            if self.previous().token_type == TokenType::SEMICOLON {
+                return
+            }
+            if let TokenType::RETURN = self.peek().token_type {
+                return;
+            }
+            self.advance();
+        }
+    }
 }
 
 pub struct AstPrinter;
