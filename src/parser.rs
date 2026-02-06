@@ -39,7 +39,23 @@ impl<'a> Parser<'a> {
     }
 
     fn expression(&self) -> Result<Expr, Error> {
-        self.equality()
+        self.comma()
+    }
+
+    // TODO: do not forget to add tests for this operatos from the challanges
+    // When implementing evaluation, remember, this should "evaluate the left operand and discard
+    // the result. Then, evaluate and return the right operand"
+    fn comma(&self) -> Result<Expr, Error> {
+        let mut expr: Expr = self.equality()?;
+
+        while self.match_token(vec!(TokenType::COMMA)) {
+            let operator: &Token = self.previous();
+            let right: Box<Expr> = Box::new(self.equality()?);
+            let left: Box<Expr> = Box::new(expr);
+            expr = Expr::Binary { left, operator, right };
+        }
+
+        return Ok(expr)
     }
 
     fn equality(&self) -> Result<Expr, Error> {
