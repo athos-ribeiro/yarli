@@ -148,7 +148,7 @@ impl<'a> Scanner<'a> {
         }
         // TODO: we need to account for utf8 data here. the slice below is quite error prone
         let text = &self.source[self.start..self.current];
-        let true_literal: Literal = Some(Box::new(false));
+        let true_literal: Literal = Some(Box::new(true));
         let false_literal: Literal = Some(Box::new(false));
         let (identifier_type, literal) = match text {
             "and" => (TokenType::AND, None),
