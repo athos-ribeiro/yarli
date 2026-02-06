@@ -1,11 +1,13 @@
 use std::{fs, io, process};
 use std::io::Write;
 use crate::lexer::{Token, TokenType, Scanner};
+use crate::parser::{Parser, AstPrinter};
 
 pub mod lexer;
 pub mod parser;
 
-static mut HAD_ERROR: bool = false;
+// Set this to pub to allow integration testing
+pub static mut HAD_ERROR: bool = false;
 
 pub struct Lox {}
 
@@ -54,8 +56,18 @@ impl Lox {
         let mut scanner = Scanner::new(source, self);
         let tokens = scanner.scan_tokens();
 
-        for token in tokens {
-            println!("{}", token);
+        let parser = Parser::new(tokens);
+        let expression = parser.parse();
+        // Stop if there was a syntax error
+        unsafe {
+            if HAD_ERROR {
+                return
+            }
+        }
+        match expression {
+            Some(expr) => println!("{}", AstPrinter{}.print(&expr)),
+            // HAD_ERROR should be set and we should not get here
+            None => (),
         }
     }
 

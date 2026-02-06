@@ -18,23 +18,23 @@ impl Error {
     }
 }
 
-pub struct Parser {
+pub struct Parser<'a> {
     // We use a Cell here for interior mutability. Since the parsing method calls are recursive and
     // calling each other, all of them would need to borrow self butably just so one method could
     // increment the current Token pointer. Let's do it with a Cell here.
     current: Cell<usize>,
-    tokens: Vec<Token>
+    tokens: &'a Vec<Token>
 }
 
-impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(tokens: &'a Vec<Token>) -> Self {
         Parser {
             current: Cell::new(0),
             tokens
         }
     }
 
-    fn parse(&self) -> Option<Expr> {
+    pub fn parse(&self) -> Option<Expr> {
         self.expression().ok()
     }
 
