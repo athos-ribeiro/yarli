@@ -34,72 +34,76 @@ impl Parser {
         }
     }
 
-    fn expression(&self) -> Expr {
+    fn parse(&self) -> Option<Expr> {
+        self.expression().ok()
+    }
+
+    fn expression(&self) -> Result<Expr, Error> {
         self.equality()
     }
 
-    fn equality(&self) -> Expr {
-        let mut expr: Expr = self.comparison();
+    fn equality(&self) -> Result<Expr, Error> {
+        let mut expr: Expr = self.comparison()?;
 
         while self.match_token(vec!(TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL)) {
             let operator: &Token = self.previous();
-            let right: Box<Expr> = Box::new(self.comparison());
+            let right: Box<Expr> = Box::new(self.comparison()?);
             let left: Box<Expr> = Box::new(expr);
             expr = Expr::Binary { left, operator, right };
         }
 
-        return expr
+        return Ok(expr)
     }
 
-    fn comparison(&self) -> Expr {
-        let mut expr: Expr = self.term();
+    fn comparison(&self) -> Result<Expr, Error> {
+        let mut expr: Expr = self.term()?;
 
         while self.match_token(vec!(TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL)) {
             let operator: &Token = self.previous();
-            let right: Box<Expr> = Box::new(self.term());
+            let right: Box<Expr> = Box::new(self.term()?);
             let left: Box<Expr> = Box::new(expr);
             expr = Expr::Binary { left, operator, right };
         }
 
-        return expr
+        return Ok(expr)
     }
 
-    fn term(&self) -> Expr {
-        let mut expr: Expr = self.factor();
+    fn term(&self) -> Result<Expr, Error> {
+        let mut expr: Expr = self.factor()?;
 
         while self.match_token(vec!(TokenType::MINUS, TokenType::PLUS)) {
             let operator: &Token = self.previous();
-            let right: Box<Expr> = Box::new(self.factor());
+            let right: Box<Expr> = Box::new(self.factor()?);
             let left: Box<Expr> = Box::new(expr);
             expr = Expr::Binary { left, operator, right };
         }
 
-        return expr
+        return Ok(expr)
     }
 
-    fn factor(&self) -> Expr {
-        let mut expr: Expr = self.unary();
+    fn factor(&self) -> Result<Expr, Error> {
+        let mut expr: Expr = self.unary()?;
 
         while self.match_token(vec!(TokenType::SLASH, TokenType::STAR)) {
             let operator: &Token = self.previous();
-            let right: Box<Expr> = Box::new(self.unary());
+            let right: Box<Expr> = Box::new(self.unary()?);
             let left: Box<Expr> = Box::new(expr);
             expr = Expr::Binary { left, operator, right };
         }
 
-        return expr
+        return Ok(expr)
     }
 
-    fn unary(&self) -> Expr {
+    fn unary(&self) -> Result<Expr, Error> {
         if self.match_token(vec!(TokenType::BANG, TokenType::MINUS)) {
             let operator: &Token = self.previous();
-            let right: Box<Expr> = Box::new(self.unary());
-            return Expr::Unary { operator, right };
+            let right: Box<Expr> = Box::new(self.unary()?);
+            return Ok(Expr::Unary { operator, right });
         }
         self.primary()
     }
 
-    fn primary(&self) -> Expr {
+    fn primary(&self) -> Result<Expr, Error> {
         // Instead of returning booleans for true and false, and None for nil, as suggested by the
         // book, we changed the lexer code to include the literal values in the boolean tokens TRUE
         // and FALSE so we can just pass a reference to those here, avoiding issues with the borrow
@@ -107,16 +111,14 @@ impl Parser {
         // As an consequence, we do not need to have several if clauses here as we have in the
         // book.
         if self.match_token(vec!(TokenType::FALSE, TokenType::TRUE, TokenType::NIL, TokenType::NUMBER, TokenType::STRING)) {
-            return Expr::Literal { value: &self.previous().literal };
+            return Ok(Expr::Literal { value: &self.previous().literal });
         }
         if self.match_token(vec!(TokenType::LEFT_PAREN)) {
-            let expr: Expr = self.expression();
+            let expr: Expr = self.expression()?;
             let _ = self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
-            return Expr::Grouping { expression: Box::new(expr) };
+            return Ok(Expr::Grouping { expression: Box::new(expr) });
         }
-        // TODO: improve error handling. We should never get here, if we do, should we really
-        // panic?
-        panic!()
+        Err(Error::error(self.peek(), "Expect expression."))
     }
 
     fn consume(&self, token_type: TokenType, err_msg: &str) -> Result<&Token, Error> {
