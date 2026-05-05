@@ -20,7 +20,7 @@ impl Error {
 
 pub struct Parser<'a> {
     // We use a Cell here for interior mutability. Since the parsing method calls are recursive and
-    // calling each other, all of them would need to borrow self butably just so one method could
+    // calling each other, all of them would need to borrow self mutably just so one method could
     // increment the current Token pointer. Let's do it with a Cell here.
     current: Cell<usize>,
     tokens: &'a Vec<Token>
