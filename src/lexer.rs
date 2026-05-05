@@ -73,6 +73,8 @@ impl<'a> Scanner<'a> {
             Some('+') => self.add_token(TokenType::PLUS, None),
             Some(';') => self.add_token(TokenType::SEMICOLON, None),
             Some('*') => self.add_token(TokenType::STAR, None),
+            Some('?') => self.add_token(TokenType::QUESTION, None),
+            Some(':') => self.add_token(TokenType::COLON, None),
             Some('!') => {
                 if self.match_next('=') {
                     self.add_token(TokenType::BANG_EQUAL, None);
@@ -265,6 +267,8 @@ pub enum TokenType {
     IDENTIFIER, STRING, NUMBER,
     // keywords
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+    // ternary
+    QUESTION, COLON,
 
     EOF,
 }

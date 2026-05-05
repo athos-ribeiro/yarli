@@ -3,6 +3,7 @@ use crate::lexer::{Literal, Token, TokenType};
 use crate::Lox;
 
 pub enum Expr<'a> {
+    Ternary { condition: Box<Expr<'a>>, expression_true: Box<Expr<'a>>, expression_false: Box<Expr<'a>> },
     Binary { left: Box<Expr<'a>>, operator: &'a Token, right: Box<Expr<'a>> },
     Grouping { expression: Box<Expr<'a>> },
     Literal { value: &'a Literal },
@@ -46,7 +47,7 @@ impl<'a> Parser<'a> {
     // When implementing evaluation, remember, this should "evaluate the left operand and discard
     // the result. Then, evaluate and return the right operand"
     fn comma(&self) -> Result<Expr, Error> {
-        let mut expr: Expr = self.equality()?;
+        let mut expr: Expr = self.ternary()?;
 
         while self.match_token(vec!(TokenType::COMMA)) {
             let operator: &Token = self.previous();
@@ -55,6 +56,18 @@ impl<'a> Parser<'a> {
             expr = Expr::Binary { left, operator, right };
         }
 
+        return Ok(expr)
+    }
+
+    fn ternary(&self) -> Result<Expr, Error> {
+        let mut expr: Expr = self.equality()?;
+        if self.match_token(vec!(TokenType::QUESTION)) {
+            let condition: Box<Expr> = Box::new(expr);
+            let expression_true: Box<Expr> = Box::new(self.equality()?);
+            let _ = self.consume(TokenType::COLON, "Expect ':' after expression.");
+            let expression_false: Box<Expr> = Box::new(self.ternary()?);
+            expr = Expr::Ternary { condition, expression_true, expression_false };
+        }
         return Ok(expr)
     }
 
@@ -224,6 +237,8 @@ impl AstPrinter {
             }
             Expr::Unary { operator, right } =>
                 self.parenthesize(&operator.lexeme, vec![&right]),
+            Expr::Ternary { condition, expression_true, expression_false } =>
+                self.parenthesize("?:", vec![&condition, &expression_true, &expression_false]),
         }
     }
 }
@@ -243,7 +258,9 @@ impl RpnPrinter {
                 }
                 value.as_ref().unwrap().to_string()
             }
-            Expr::Unary { operator, right } => format!("{} {}", self.print(&right), &operator.lexeme)
+            Expr::Unary { operator, right } => format!("{} {}", self.print(&right), &operator.lexeme),
+            Expr::Ternary { condition, expression_true, expression_false } =>
+                format!("{} {} {} {}", self.print(&condition), self.print(&expression_true), self.print(&expression_false), "?:")
         }
     }
 }
