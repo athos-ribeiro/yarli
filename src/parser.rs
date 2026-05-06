@@ -154,7 +154,7 @@ impl<'a> Parser<'a> {
         {
             let previous_token: &Token = self.previous();
             // Discard right-hand operand w/ ppropriate precedence
-            match previous_token.token_type {
+            let _ = match previous_token.token_type {
                 // equality
                 TokenType::BANG_EQUAL | TokenType::EQUAL_EQUAL => self.comparison(),
                 // comparison
