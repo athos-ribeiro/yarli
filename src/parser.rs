@@ -147,6 +147,26 @@ impl<'a> Parser<'a> {
             let _ = self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
             return Ok(Expr::Grouping { expression: Box::new(expr) });
         }
+        // Ch. 6 challenge 3: add error productions for binary operators w/o left-hand operand
+        if self.match_token(vec!(TokenType::MINUS, TokenType::PLUS, TokenType::SLASH,
+                TokenType::STAR, TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL, TokenType::GREATER,
+                TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL))
+        {
+            let previous_token: &Token = self.previous();
+            // Discard right-hand operand w/ ppropriate precedence
+            match previous_token.token_type {
+                // equality
+                TokenType::BANG_EQUAL | TokenType::EQUAL_EQUAL => self.comparison(),
+                // comparison
+                TokenType::GREATER | TokenType::GREATER_EQUAL | TokenType::LESS | TokenType::LESS_EQUAL => self.term(),
+                // term
+                TokenType::MINUS | TokenType::PLUS => self.factor(),
+                // factor
+                TokenType::SLASH | TokenType::STAR => self.unary(),
+                _ => Err(Error::error(previous_token, "Impossible token type"))
+            };
+            return Err(Error::error(previous_token, "Binary operator without left-hand oprand."));
+        }
         Err(Error::error(self.peek(), "Expect expression."))
     }
 
