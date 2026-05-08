@@ -180,7 +180,7 @@ impl<'a> Scanner<'a> {
         }
         if self.peek() == Some('.') {
             if let Some('0'..='9') = self.peek_next() {
-                // Condume the first '.'
+                // Consume the first '.'
                 self.advance();
                 // and keep parsing the digits after it.
                 while let Some('0'..='9') = self.peek() {
