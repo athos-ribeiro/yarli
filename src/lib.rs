@@ -5,6 +5,7 @@ use crate::parser::{Parser, AstPrinter};
 
 pub mod lexer;
 pub mod parser;
+pub mod interpreter;
 
 // Set this to pub to allow integration testing
 pub static mut HAD_ERROR: bool = false;
