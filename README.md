@@ -13,7 +13,7 @@ discribed in the book.
 
 * [X] Chapter 04: Scanning
 * [X] Chapter 05: Representing Code
-* [ ] Chapter 06: Parsing Expressions
+* [X] Chapter 06: Parsing Expressions
 * [ ] Chapter 07: Evaluating Expressions
 * [ ] Chapter 08: Statements and State
 * [ ] Chapter 09: Control Flow
